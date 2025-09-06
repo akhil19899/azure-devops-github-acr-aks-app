@@ -1,0 +1,33 @@
+trigger:
+- main
+
+resources:
+- repo: self
+
+variables:
+  dockerRegistryServiceConnection: '229b39df-2b3e-407d-9173-8ef0180c7486'
+  imageRepository: 'appnginix'
+  containerRegistry: 'acrtoaks2.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: Build and push stage
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      name: 'Default'     # 👈 your self-hosted agent pool
+      demands:
+      - agent.name -equals ubuntuselfhosted   # 👈 ensures this specific agent runs the job
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
